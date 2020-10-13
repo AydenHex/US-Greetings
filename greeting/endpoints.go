@@ -3,6 +3,7 @@ package greeting
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-kit/kit/endpoint"
 )
@@ -34,9 +35,9 @@ type GetAllResponse struct {
 	greetings []Greeting `json:"greetings"`
 }
 
-func MakeGetAllForUserEndpoint(s greetingService) endpoint.Endpoint {
+func MakeGetAllEndpoint(s GreetingService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		greetings, err := s.GetAllForUser(ctx)
+		greetings, err := s.GetAll(ctx)
 		return GetAllResponse{greetings}, err
 	}
 }
@@ -46,10 +47,10 @@ type GetByIDRequest struct {
 }
 
 type GetByIDResponse struct {
-	greeting greeting `json:"greeting"`
+	greeting Greeting `json:"greeting"`
 }
 
-func MakeGetByIDEndpoint(s greetingService) endpoint.Endpoint {
+func MakeGetByIDEndpoint(s GreetingService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetByIDRequest)
 		greeting, err := s.GetByID(ctx, req.ID)
@@ -58,30 +59,31 @@ func MakeGetByIDEndpoint(s greetingService) endpoint.Endpoint {
 }
 
 type AddRequest struct {
-	greeting greeting
+	greeting Greeting
 }
 
 type AddResponse struct {
-	greeting greeting `json:"greeting"`
+	greeting Greeting `json:"greeting"`
 }
 
-func MakeAddEndpoint(s greetingService) endpoint.Endpoint {
+func MakeAddEndpoint(s GreetingService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(AddRequest)
 		greeting, err := s.Add(ctx, req.greeting)
+		fmt.Println(AddResponse{greeting})
 		return AddResponse{greeting}, err
 	}
 }
 
 type UpdateRequest struct {
 	ID       string
-	greeting greeting
+	greeting Greeting
 }
 
 type UpdateResponse struct {
 }
 
-func MakeUpdateEndpoint(s greetingService) endpoint.Endpoint {
+func MakeUpdateEndpoint(s GreetingService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(UpdateRequest)
 		err := s.Update(ctx, req.ID, req.greeting)
@@ -96,7 +98,7 @@ type DeleteRequest struct {
 type DeleteResponse struct {
 }
 
-func MakeDeleteEndpoint(s greetingService) endpoint.Endpoint {
+func MakeDeleteEndpoint(s GreetingService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(DeleteRequest)
 		err := s.Delete(ctx, req.ID)

@@ -13,7 +13,7 @@ import (
 
 // GreetingService for Greetings
 type GreetingService interface {
-	GetAllForUser(ctx context.Context, username string) ([]Greeting, error)
+	GetAll(ctx context.Context) ([]Greeting, error)
 	GetByID(ctx context.Context, id string) (Greeting, error)
 	Add(ctx context.Context, greeting Greeting) (Greeting, error)
 	Update(ctx context.Context, id string, greeting Greeting) error
@@ -45,15 +45,13 @@ type inmemService struct {
 }
 
 // GetAllForUser gets Greetings from memory for a user
-func (s *inmemService) GetAllForUser(ctx context.Context, username string) ([]Greeting, error) {
+func (s *inmemService) GetAll(ctx context.Context) ([]Greeting, error) {
 	s.RLock()
 	defer s.RUnlock()
 
 	greetings := make([]Greeting, 0, len(s.m))
 	for _, greeting := range s.m {
-		if greeting.Username == username {
-			greetings = append(greetings, greeting)
-		}
+		greetings = append(greetings, greeting)
 	}
 	return greetings, nil
 }
@@ -67,7 +65,7 @@ func (s *inmemService) GetByID(ctx context.Context, id string) (Greeting, error)
 		return greeting, nil
 	}
 
-	return Greeting{}, nil
+	return Greeting{}, ErrNotFound
 }
 
 // Add a Greeting to memory
@@ -76,7 +74,6 @@ func (s *inmemService) Add(ctx context.Context, greeting Greeting) (Greeting, er
 	defer s.Unlock()
 
 	greeting.ID = xid.New().String()
-	greeting.CreatedOn = time.Now()
 
 	s.m[greeting.ID] = greeting
 	return greeting, nil

@@ -1,0 +1,13 @@
+POST http://localhost:8000/greetings HTTP/1.1
+content-type: application/json
+
+{
+    "value": "sample"
+}
+###
+
+GET http://localhost:8000/greetings HTTP/1.1
+
+###
+
+GET http://localhost:8000/greetings/bu2qhf7170hif6mtdj0 HTTP/1.1

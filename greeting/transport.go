@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/render"
@@ -28,8 +29,16 @@ func MakeHTTPHandler(endpoints GreetingEndpoints) http.Handler {
 
 	greetingRouter := chi.NewRouter()
 
+	/**greetingRouter.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))*/
+
 	greetingRouter.Get("/", httptransport.NewServer(
-		endpoints.GetAllForUserEndpoint,
+		endpoints.GetAllEndpoint,
 		decodeGetRequest,
 		encodeResponse,
 		options...,
@@ -45,7 +54,7 @@ func MakeHTTPHandler(endpoints GreetingEndpoints) http.Handler {
 	greetingRouter.Post("/", httptransport.NewServer(
 		endpoints.AddEndpoint,
 		decodeAddRequest,
-		encodeResponse,
+		encoreResponseTest,
 		options...,
 	).ServeHTTP)
 
@@ -69,7 +78,7 @@ func MakeHTTPHandler(endpoints GreetingEndpoints) http.Handler {
 }
 
 func decodeGetRequest(ctx context.Context, r *http.Request) (request interface{}, err error) {
-	return GetAllForUserRequest{}, err
+	return GetAllRequest{}, err
 }
 
 func decodeGetByIDRequest(ctx context.Context, r *http.Request) (request interface{}, err error) {
@@ -110,13 +119,18 @@ func decodeDeleteRequest(ctx context.Context, r *http.Request) (request interfac
 	return DeleteRequest{id}, err
 }
 
+func encoreResponseTest(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	return json.NewEncoder(w).Encode(response)
+}
 func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	if err, ok := response.(error); ok && err != nil {
 		encodeError(ctx, err, w)
 		return nil
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	return json.NewEncoder(w).Encode(response)
+
+	fmt.Println(response)
+	return json.NewEncoder(w).Encode(&response)
 }
 
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
